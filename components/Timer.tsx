@@ -1,58 +1,93 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { configTimer, type TimerConfig } from "../config/configTimer";
+import TimerDisplay from "./TimerDisplay";
 
-const formatTimer = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-export default function CountdownTimer() {
+export default function Timer() {
   const [time, setTime] = useState<number>(configTimer[0].seconds);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [selectedTimer, setSelectedTimer] = useState<TimerConfig>(configTimer[0]);
+  const [currentTimer, setCurrentTimer] = useState<TimerConfig>(configTimer[0]);
+  const [completedFocus, setCompletedFocus] = useState<number>(0);
+  const isCompleted = useRef<boolean>(false);
+
+  const handleTimerComplete = () => {
+    if (currentTimer.mode === "focus") {
+      setCompletedFocus((prev) => prev + 1);
+    }
+
+    console.log(`Timer completed: ${currentTimer.label}`);
+
+    const nextTimer = getNextTimer();
+
+    setCurrentTimer(nextTimer);
+    setTime(nextTimer.seconds);
+    setIsRunning(false);
+  };
 
   useEffect(() => {
     if (!isRunning) return;
 
     const timer = setInterval(() => {
-      setTime((prev) => {
-      if (prev <= 1) {
-        setIsRunning(false);
-        return 0;
-      }
-
-      return prev - 1;
-    });
+      setTime((prev) => Math.max(0, prev - 1))
     }, 1000)
 
     return () => clearInterval(timer);
-  }, [isRunning])
+  }, [isRunning]);
 
-  const handleReset = () => {
-    setTime(selectedTimer.seconds);
+  useEffect(() => {
+    if (time !== 0 || !isRunning || isCompleted.current) return;
+
+    isCompleted.current = true;
+    handleTimerComplete();
+  }, [time, isRunning, currentTimer, completedFocus]);
+
+  const getNextTimer = (): TimerConfig => {
+    if (currentTimer.mode === "focus") {
+      if ((completedFocus + 1) % 4 === 0) {
+        return configTimer.find((timer) => timer.mode === "longBreak")!;
+      }
+
+      return configTimer.find((timer) => timer.mode === "shortBreak")!;
+    }
+
+    return configTimer.find((timer) => timer.mode === "focus")!;
+  };
+
+  const handleRestart = () => {
+    isCompleted.current = false;
+    setTime(currentTimer.seconds);
+    setIsRunning(true);
+  };
+
+  const handleStart = () => {
+    if (time === 0) return;
+
+    isCompleted.current = false;
+    setIsRunning(true);
+  };
+
+  const handleSelectTimer = (timer: TimerConfig) => {
     setIsRunning(false);
-  }
+    isCompleted.current = false;
+    setCurrentTimer(timer);
+    setTime(timer.seconds)
+  };
 
   return (
     <>
-      <h1>{formatTimer(time)}</h1>
+      <TimerDisplay time={time} />
       {configTimer.map((timer) => (
-        <button key={timer.id} onClick={() => {
-          setSelectedTimer(timer);
-          setTime(timer.seconds)
-        }}>
+        <button key={timer.id} onClick={() => handleSelectTimer(timer)}>
           {timer.label}
         </button>
       ))}
 
-      <p>Select Timer: {selectedTimer.label}</p>
+      <p>Select Timer: {currentTimer.label}</p>
 
       <br />
 
-      <button onClick={() => setIsRunning(true)}>
+      <button onClick={handleStart}>
         Start
       </button>
 
@@ -60,9 +95,12 @@ export default function CountdownTimer() {
         Pause
       </button>
 
-      <button onClick={handleReset}>
-        Reset
+      <button onClick={handleRestart}>
+        Restart
       </button>
+
+      <br />
+      <p>Completed Focus: {completedFocus}</p>
     </>
   );
 }
