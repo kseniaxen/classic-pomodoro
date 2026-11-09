@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { configTimer, type TimerConfig } from "../config/configTimer";
+import { configTimer, type TimerConfig } from "../../config/configTimer";
 import TimerDisplay from "./TimerDisplay";
+import TimerModes from "./TimerModes";
+import TimerControls from "./TimerControls";
 
 export default function Timer() {
   const [time, setTime] = useState<number>(configTimer[0].seconds);
@@ -67,6 +69,10 @@ export default function Timer() {
     setIsRunning(true);
   };
 
+  const handlePause = () => {
+    setIsRunning(false);
+  }
+
   const handleSelectTimer = (timer: TimerConfig) => {
     setIsRunning(false);
     isCompleted.current = false;
@@ -75,32 +81,26 @@ export default function Timer() {
   };
 
   return (
-    <>
+    <div className="min-h-[calc(100vh-80px)] flex flex-col justify-center items-center gap-4">
+      <p className="text-center font-playfair text-2xl text-white/90 ">
+        {currentTimer.label}
+      </p>
+      
       <TimerDisplay time={time} />
-      {configTimer.map((timer) => (
-        <button key={timer.id} onClick={() => handleSelectTimer(timer)}>
-          {timer.label}
-        </button>
-      ))}
+      <TimerModes
+        configTimer={configTimer}
+        currentTimer={currentTimer}
+        handleSelectTimer={handleSelectTimer}
+      />
 
-      <p>Select Timer: {currentTimer.label}</p>
 
-      <br />
+      <TimerControls
+        handleStart={handleStart}
+        handlePause={handlePause}
+        handleRestart={handleRestart}
+        isRunning={isRunning}
+      />
 
-      <button onClick={handleStart}>
-        Start
-      </button>
-
-      <button onClick={() => setIsRunning(false)}>
-        Pause
-      </button>
-
-      <button onClick={handleRestart}>
-        Restart
-      </button>
-
-      <br />
-      <p>Completed Focus: {completedFocus}</p>
-    </>
+    </div>
   );
 }

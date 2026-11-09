@@ -1,5 +1,5 @@
 @import "tailwindcss";
 
-* {
-    color: white;
+@theme {
+    --font-playfair: var(--font-playfair);
 }

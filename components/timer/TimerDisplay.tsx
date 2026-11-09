@@ -9,5 +9,9 @@ const formatTimer = (seconds: number): string => {
 }
 
 export default function TimerDisplay({ time }: TimerDisplayProps) {
-    return <h1>{formatTimer(time)}</h1>;
+    return <div className="flex justify-center py-6">
+        <h1 className="font-playfair font-semibold text-8xl tracking-wide drop-shadow-lg">
+            {formatTimer(time)}
+        </h1>
+    </div>
 }
