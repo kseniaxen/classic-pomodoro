@@ -1,3 +1,5 @@
+import type { TimerSettings } from "./timerSettings";
+
 export type TimerMode = "focus" | "shortBreak" | "longBreak";
 
 export interface TimerConfig {
@@ -7,8 +9,23 @@ export interface TimerConfig {
     mode: TimerMode;
 }
 
-export const configTimer: TimerConfig[] = [
-    { id: "focus", label: "Focus", seconds: 1 * 60, mode: "focus" },
-    { id: "short-break", label: "Short Break", seconds: 5 * 60, mode: "shortBreak" },
-    { id: "long-break", label: "Long Break", seconds: 15 * 60, mode: "longBreak" },
+export const getTimerConfig = (settings: TimerSettings): TimerConfig[] => [
+    {
+        id: "focus",
+        label: "Focus",
+        seconds: settings.focus * 60,
+        mode: "focus",
+    },
+    {
+        id: "short-break",
+        label: "Short Break",
+        seconds: settings.shortBreak * 60,
+        mode: "shortBreak",
+    },
+    {
+        id: "long-break",
+        label: "Long Break",
+        seconds: settings.longBreak * 60,
+        mode: "longBreak",
+    },
 ];

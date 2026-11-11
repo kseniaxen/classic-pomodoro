@@ -1,17 +1,40 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { configTimer, type TimerConfig } from "../../config/configTimer";
+import { getTimerConfig, type TimerConfig } from "../../config/configTimer";
 import TimerDisplay from "./TimerDisplay";
 import TimerModes from "./TimerModes";
 import TimerControls from "./TimerControls";
+import { defaultTimerSettings, type TimerSettings } from "@/config/timerSettings";
 
 export default function Timer() {
-  const [time, setTime] = useState<number>(configTimer[0].seconds);
+  const [settings, setSettings] = useState<TimerSettings>(
+    defaultTimerSettings
+  );
+  const timerConfigs = getTimerConfig(settings);
+
+  const [time, setTime] = useState<number>(timerConfigs[0].seconds);
   const [isRunning, setIsRunning] = useState<boolean>(false);
-  const [currentTimer, setCurrentTimer] = useState<TimerConfig>(configTimer[0]);
+  const [currentTimer, setCurrentTimer] = useState<TimerConfig>(timerConfigs[0]);
   const [completedFocus, setCompletedFocus] = useState<number>(0);
   const isCompleted = useRef<boolean>(false);
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem("pomodoro-settings");
+
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
+
+  useEffect(() => {
+    const updatedTimer = timerConfigs.find(
+      (timer) => timer.mode === currentTimer.mode
+    )!;
+
+    setCurrentTimer(updatedTimer);
+    setTime(updatedTimer.seconds);
+  }, [settings]);
 
   const handleTimerComplete = () => {
     if (currentTimer.mode === "focus") {
@@ -26,6 +49,7 @@ export default function Timer() {
     setTime(nextTimer.seconds);
     setIsRunning(false);
   };
+
 
   useEffect(() => {
     if (!isRunning) return;
@@ -47,13 +71,13 @@ export default function Timer() {
   const getNextTimer = (): TimerConfig => {
     if (currentTimer.mode === "focus") {
       if ((completedFocus + 1) % 4 === 0) {
-        return configTimer.find((timer) => timer.mode === "longBreak")!;
+        return timerConfigs.find((timer) => timer.mode === "longBreak")!;
       }
 
-      return configTimer.find((timer) => timer.mode === "shortBreak")!;
+      return timerConfigs.find((timer) => timer.mode === "shortBreak")!;
     }
 
-    return configTimer.find((timer) => timer.mode === "focus")!;
+    return timerConfigs.find((timer) => timer.mode === "focus")!;
   };
 
   const handleRestart = () => {
@@ -85,10 +109,10 @@ export default function Timer() {
       <p className="text-center font-playfair text-2xl text-white/90 ">
         {currentTimer.label}
       </p>
-      
+
       <TimerDisplay time={time} />
       <TimerModes
-        configTimer={configTimer}
+        configTimer={timerConfigs}
         currentTimer={currentTimer}
         handleSelectTimer={handleSelectTimer}
       />
