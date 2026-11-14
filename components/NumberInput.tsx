@@ -45,7 +45,7 @@ export default function NumberInput({
                     required
                     value={value}
                     onChange={(e) => onChange(Number(e.target.value))}
-                    className="flex-1 rounded-xl bg-black/20 border border-white/20 px-4 py-3 text-white outline-none focus:border-amber-200"
+                    className="flex-1 rounded-xl bg-black/20 border border-white/20 px-4 py-3 text-white outline-none focus:border-amber-200 appearance-none [-moz-appearance:textfield]"
                 />
 
                 <div className="flex flex-col gap-1">
